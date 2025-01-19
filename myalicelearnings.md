@@ -126,5 +126,6 @@ Built in apis for managing workloads:
 
 Cronjobs - performs regular scheduled actions such as backups or report generation. spec.schedule field is denoted by five stars (*****) where the stars defined by minute(0-59), hour(0-23), day of the month(1-31), number of the month(1-12) and day of the week(0-6) from left to right. for example; 0 9 * * 2 means the task scheduled to run weekly on tuesday at 9am.
 
-
 ReplicaSet- A ReplicaSet is to maintain a stable set of replica Pods running at any given time. we define a Deployment and that Deployment manage ReplicaSets automatically.
+
+Volume mounting!!??
