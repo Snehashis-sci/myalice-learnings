@@ -114,3 +114,16 @@ Recursively process directories:
 kubectl diff -R -f configs/
 kubectl apply -R -f configs/
 ```
+
+#### Workload Management
+
+Built in apis for managing workloads:
+
+* Deployment - manages stateless application on the cluster where aany pod in the deployment can be interrchangeable.
+* Statefulset - lets us manage more than one  pods running in the same application code. it makes a link between itspos and their pv. each pod associated with a pv. if one fails, k8s makes a replacement that is connencted to the same pv.
+* Daemonset - we e use it when a node level service has to rn on the node.it performs roles similar to system daemon on a unix system.(still not clear, what is node level service?)
+
+
+Cronjobs - performs regular scheduled actions such as backups or report generation. spec.schedule field is denoted by five stars (*****) where the stars defined by minute(0-59), hour(0-23), day of the month(1-31), number of the month(1-12) and day of the week(0-6) from left to right. for example; 0 9 * * 2 means the task scheduled to run weekly on tuesday at 9am.
+
+
