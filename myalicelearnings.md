@@ -129,3 +129,18 @@ Cronjobs - performs regular scheduled actions such as backups or report generati
 ReplicaSet- A ReplicaSet is to maintain a stable set of replica Pods running at any given time. we define a Deployment and that Deployment manage ReplicaSets automatically.
 
 Volume mounting!!??
+
+Things to cover:  
+* how deployment, statefulset, daemonset mounts volumes, gets values from configmap and secrets
+
+*  how node-affinity, pod-affinity and anti-affinity works
+
+* how taint toleration works
+
+* run a frontend, backend and database in minikube, using node port expose the frontend and backend.
+
+* how to add/remove taints to/from nodes
+
+* Check out pod disruption budget, network policy, RBAC, service account.
+
+* Also check horizontal pod autoscaler, sidecar, kubernetes job, cronjob
