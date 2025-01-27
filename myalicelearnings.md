@@ -1080,4 +1080,156 @@ PS C:\Users\Sndevice\Documents\GitHub\myalice-learnings> minikube stop
 🛑  1 node stopped.
 ```
 
-why theres 2 replicas but 3 pods???
+-Why theres 2 replicas but 3 pods???
+
+the deployment has 2 replicas, meaning there are 2 identical pod instances running. However, the total number of pods is 3. This could happen if one of the pods is in a transitional state, such as being created, terminated, or restarted. Kubernetes will ensure that the desired number of 2 replicas is maintained, even if one of the pods is temporarily in a non-running state.
+
+The discrepancy between the number of replicas and the number of pods is normal and can occur due to various reasons, such as pod failures, scaling operations, or deployment updates. Kubernetes will automatically manage the pod lifecycle to ensure the desired number of replicas is maintained.
+
+#### StatefulSet
+
+* terminationGracePeriodSeconds
+
+* volumeClaimTemplates
+
+Using configmap in statefulset--
+
+Create a ConfigMap:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: example-configmap
+data:
+  config-key: config-value
+
+```
+Use the ConfigMap in StatefulSet:
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: example-statefulset
+spec:
+  serviceName: "example"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: example
+  template:
+    metadata:
+      labels:
+        app: example
+    spec:
+      containers:
+      - name: example-container
+        image: example-image
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/config
+      volumes:
+      - name: config-volume
+        configMap:
+          name: example-configmap
+
+```
+
+Using Secrets--
+
+Create a Secret:
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: example-secret
+type: Opaque
+data:
+  secret-key: c2VjcmV0LXZhbHVl # Base64 encoded value
+
+```
+
+Use the Secret in StatefulSet:
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: example-statefulset
+spec:
+  serviceName: "example"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: example
+  template:
+    metadata:
+      labels:
+        app: example
+    spec:
+      containers:
+      - name: example-container
+        image: example-image
+        volumeMounts:
+        - name: secret-volume
+          mountPath: /etc/secret
+      volumes:
+      - name: secret-volume
+        secret:
+          secretName: example-secret
+
+```
+#### DaemonSet
+
+* tolerations
+
+```yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluentd-elasticsearch
+  namespace: kube-system
+  labels:
+    k8s-app: fluentd-logging
+spec:
+  selector:
+    matchLabels:
+      name: fluentd-elasticsearch
+  template:
+    metadata:
+      labels:
+        name: fluentd-elasticsearch
+    spec:
+      tolerations:
+      # these tolerations are to have the daemonset runnable on control plane nodes
+      # remove them if your control plane nodes should not run pods
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: fluentd-elasticsearch
+        image: quay.io/fluentd_elasticsearch/fluentd:v2.5.2
+        resources:
+          limits:
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        volumeMounts:
+        - name: varlog
+          mountPath: /var/log
+      # it may be desirable to set a high priority class to ensure that a DaemonSet Pod
+      # preempts running Pods
+      # priorityClassName: important
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: varlog
+        hostPath:
+          path: /var/log
+
+```
+why theres a volume section while theres already volume mounted?
