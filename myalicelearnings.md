@@ -1232,4 +1232,93 @@ spec:
           path: /var/log
 
 ```
-why theres a volume section while theres already volume mounted?
+
+
+#### Kustomize
+
+Today i have created an application properties and env file first and then a kustomization file for it and checked it through `kubectl kustomize ./`. both of the files were referred correctly. It is better to edit these files manually as there can be encoding issue while creating these files from powershell. and later on, i have generated password file and used secretgenerator and linked it to a new deployment file. Ran the `kubectl kustomize ./`. Everything went smooth. 
+
+```Powershell
+PS C:\Users\Sndevice\Documents\GitHub\myalice-learnings\kustomize> kubectl kustomize ./
+apiVersion: v1
+data:
+  FOO: bar
+kind: ConfigMap
+metadata:
+  name: example-configmap-1-59m54fbgh2
+PS C:\Users\Sndevice\Documents\GitHub\myalice-learnings\kustomize> kubectl kustomize ./
+apiVersion: v1
+binaryData:
+  application.properties: //5GAE8ATwA9AEIAYQByAA0ACgA=
+kind: ConfigMap
+metadata:
+  name: example-configmap-1-d9fcctmmc2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: my-app
+  name: my-app
+spec:
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - image: my-app
+        name: app
+        volumeMounts:
+        - mountPath: /config
+          name: config
+      volumes:
+      - configMap:
+          name: example-configmap-1-d9fcctmmc2
+        name: config
+PS C:\Users\Sndevice\Documents\GitHub\myalice-learnings\kustomize>
+
+PS C:\Users\Sndevice\Documents\GitHub\myalice-learnings\kustomize> kubectl kustomize ./
+apiVersion: v1
+binaryData:
+  application.properties: //5GAE8ATwA9AEIAYQByAA0ACgA=
+kind: ConfigMap
+metadata:
+  name: example-configmap-1-d9fcctmmc2
+---
+apiVersion: v1
+data:
+  password.txt: dXNlcm5hbWU9YWRtaW4NCnBhc3N3b3JkPXNlY3JldA==
+kind: Secret
+metadata:
+  name: example-secret-1-gf8hktg4gm
+type: Opaque
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: my-app
+  name: my-app
+spec:
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - image: my-app
+        name: app
+        volumeMounts:
+        - mountPath: /config
+          name: config
+      volumes:
+      - configMap:
+          name: example-configmap-1-d9fcctmmc2
+        name: config
+```
