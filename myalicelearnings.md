@@ -1322,3 +1322,50 @@ spec:
           name: example-configmap-1-d9fcctmmc2
         name: config
 ```
+
+#### Helm
+
+Helm charts: A bundle of yaml files which can be downloaded and be used for applications. We can also make our own helm charts with helm and push them to the helm repository. 
+Sharing helm charts: We can share helm charts. Look it up with `helm search <keyword>`. THeres a helm hub a a public registry where we can find various helm charts to use.
+Templating engine: It can be used as a templating engine where we can define a common blueprint and the dynamic values can be replaced with a placeholder. We have to have a template yamnl config file and another value.yaml file to get the values to use it on the template file which can be used for common pods.
+Release management: 
+
+Created a sample helloworld helm chart with nginx image and installed it to run.
+
+```powershell
+PS C:\Users\Sndevice> helm install myhelloworld helloworld
+NAME: myhelloworld
+LAST DEPLOYED: Tue Feb  4 15:05:47 2025
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+NOTES:
+1. Get the application URL by running these commands:
+  export NODE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[0].nodePort}" services myhelloworld)
+  export NODE_IP=$(kubectl get nodes --namespace default -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+PS C:\Users\Sndevice> helm list -a
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+myhelloworld    default         1               2025-02-04 15:05:47.8161656 +0600 +06   deployed        helloworld-0.1.0        1.16.0  
+
+PS C:\Users\Sndevice> kubectl get service
+NAME             TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+kubernetes       ClusterIP   10.96.0.1        <none>        443/TCP          16d
+mongo-service    ClusterIP   10.109.210.174   <none>        27017/TCP        12d
+myhelloworld     NodePort    10.109.37.253    <none>        80:31801/TCP     7m7s
+webapp-service   NodePort    10.101.192.143   <none>        3000:30200/TCP   12d
+```
+
+Changed the service type to nodePort 
+
+```yaml
+service:
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: NodePort
+  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  port: 80
+```
+
+Applied the following cmd line to run on the browser.
+
+`minikube service myhelloworld --url`
