@@ -1369,3 +1369,151 @@ service:
 Applied the following cmd line to run on the browser.
 
 `minikube service myhelloworld --url`
+
+5th feb 2025
+
+Today i have followed the helm chart tutorial by Richard Chesterwood. i have used docker desktop with an ubuntu image to get a gitbash and perform my actions. Here i have gone through the overview of helm chart and basic cli commands. then i have created a helm chart of my own named as myownchart. it created a directory with the same name and in that directory i have given other instructions. Following that i have checked out the artifacthub.io which is an helm repo and searched for prometheus chart which is for monitoring my app. It includes grafana as well. I have added the repo to my system and updated it. Installed the prometheus chart and edited the svc file from clusterip to NodePort and added a nodePort to it.  I had to use a service tunnel to view the content on browser. I have gone through these following bash lines.
+
+```bash
+Sndevice@Sndevice MINGW64 ~
+$ helm create myownchart
+Creating myownchart
+Sndevice@Sndevice MINGW64 ~
+$ helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+"prometheus-community" has been added to your repositories
+
+Sndevice@Sndevice MINGW64 ~
+$ helm repo list
+NAME                    URL
+prometheus-community    https://prometheus-community.github.io/helm-charts
+
+Sndevice@Sndevice MINGW64 ~
+$ cd myownchart
+
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ helm repo update
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "prometheus-community" chart repository
+Update Complete. ⎈Happy Helming!⎈
+
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ helm install monitoring prometheus-community/kube-prometheus-stack --version 68.4.5
+NAME: monitoring
+LAST DEPLOYED: Wed Feb  5 16:38:17 2025
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+NOTES:
+kube-prometheus-stack has been installed. Check its status by running:
+  kubectl --namespace default get pods -l "release=monitoring"
+
+Get Grafana 'admin' user password by running:
+
+  kubectl --namespace default get secrets prom-grafana -ojsonpath="{.data.admin-password}" | base64 -d ; echo
+
+Access Grafana local instance:
+
+  export POD_NAME=$(kubectl --namespace default get pod -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=monitoring" -oname)
+  kubectl --namespace default port-forward $POD_NAME 3000
+
+Visit https://github.com/prometheus-operator/kube-prometheus for instructions on how to create & configure Alertmanager and Prometheus instances using the Operator.
+
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ ls
+Chart.yaml  charts  templates  values.yaml
+
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ ^C
+
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ kubectl --namespace default get pods -l "release=monitoring"
+NAME                                                   READY   STATUS    RESTARTS   AGE
+monitoring-kube-prometheus-operator-7859f9db49-4qbcg   1/1     Running   0          105s
+monitoring-kube-state-metrics-56d9ddb9c7-dfswp         1/1     Running   0          105s
+monitoring-prometheus-node-exporter-x8gq2              1/1     Running   0          105s
+
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ cd charts
+
+Sndevice@Sndevice MINGW64 ~/myownchart/charts
+$ ls
+
+Sndevice@Sndevice MINGW64 ~/myownchart/charts
+$ cd .
+
+Sndevice@Sndevice MINGW64 ~/myownchart/charts
+$ cd ..
+
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ helm list
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHARTART                ART                             APP VERSION
+monitoring      default         1               2025-02-05 16:38:17.9310121 +0600 +06   deployed        kube-prometheus-stack-68.4.5      v0.79.2
+
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ helm list
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                             APP VERSION
+monitoring      default         1               2025-02-05 16:38:17.9310121 +0600 +06   deployed        kube-prometheus-stack-68.4.5      v0.79.2
+
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ kubectl get po
+NAME                                                     READY   STATUS    RESTARTS      AGE
+alertmanager-monitoring-kube-prometheus-alertmanager-0   2/2     Running   0             3m42s
+mongo-deployment-687945d745-ksrvm                        1/1     Running   2 (75m ago)   12d
+mongo-deployment-687945d745-wdjr2                        1/1     Running   2 (75m ago)   12d
+monitoring-grafana-5476f8cc5c-jhzsz                      3/3     Running   0             4m49s
+monitoring-kube-prometheus-operator-7859f9db49-4qbcg     1/1     Running   0             4m49s
+monitoring-kube-state-metrics-56d9ddb9c7-dfswp           1/1     Running   0             4m49s
+monitoring-prometheus-node-exporter-x8gq2                1/1     Running   0             4m49s
+prometheus-monitoring-kube-prometheus-prometheus-0       2/2     Running   0             3m42s
+webapp-deployment-5d5f84c76c-s5c2n                       1/1     Running   3 (75m ago)   12d
+
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ kubectl get svc
+NAME                                      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+alertmanager-operated                     ClusterIP   None             <none>        9093/TCP,9094/TCP,9094/UDP   39m
+kubernetes                                ClusterIP   10.96.0.1        <none>        443/TCP                      17d
+mongo-service                             ClusterIP   10.109.210.174   <none>        27017/TCP                    13d
+monitoring-grafana                        ClusterIP   10.100.97.119    <none>        80/TCP                       40m
+monitoring-kube-prometheus-alertmanager   ClusterIP   10.100.191.29    <none>        9093/TCP,8080/TCP            40m
+monitoring-kube-prometheus-operator       ClusterIP   10.96.13.107     <none>        443/TCP                      40m
+monitoring-kube-prometheus-prometheus     ClusterIP   10.100.216.145   <none>        9090/TCP,8080/TCP            40m
+monitoring-kube-state-metrics             ClusterIP   10.109.197.2     <none>        8080/TCP                     40m
+monitoring-prometheus-node-exporter       ClusterIP   10.96.119.51     <none>        9100/TCP                     40m
+prometheus-operated                       ClusterIP   None             <none>        9090/TCP                     39m
+webapp-service                            NodePort    10.101.192.143   <none>        3000:30200/TCP               13d
+
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ kubectl edit svc ^C
+
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ kubectl get svc monitoring-grafana
+NAME                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+monitoring-grafana   ClusterIP   10.100.97.119   <none>        80/TCP    44m
+
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ kubectl edit svc monitoring-grafana
+service/monitoring-grafana edited
+
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ kubectl get svc
+NAME                                      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+alertmanager-operated                     ClusterIP   None             <none>        9093/TCP,9094/TCP,9094/UDP   46m
+kubernetes                                ClusterIP   10.96.0.1        <none>        443/TCP                      17d
+mongo-service                             ClusterIP   10.109.210.174   <none>        27017/TCP                    13d
+monitoring-grafana                        NodePort    10.100.97.119    <none>        80:30001/TCP                 47m
+monitoring-kube-prometheus-alertmanager   ClusterIP   10.100.191.29    <none>        9093/TCP,8080/TCP            47m
+monitoring-kube-prometheus-operator       ClusterIP   10.96.13.107     <none>        443/TCP                      47m
+monitoring-kube-prometheus-prometheus     ClusterIP   10.100.216.145   <none>        9090/TCP,8080/TCP            47m
+monitoring-kube-state-metrics             ClusterIP   10.109.197.2     <none>        8080/TCP                     47m
+monitoring-prometheus-node-exporter       ClusterIP   10.96.119.51     <none>        9100/TCP                     47m
+prometheus-operated                       ClusterIP   None             <none>        9090/TCP                     46m
+webapp-service                            NodePort    10.101.192.143   <none>        3000:30200/TCP               13d
+
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ minikube ip
+192.168.49.2
+Sndevice@Sndevice MINGW64 ~/myownchart
+$ minikube service monitoring-grafana --url
+http://127.0.0.1:63800
+❗  Because you are using a Docker driver on windows, the terminal needs to be open to run it.
+```
