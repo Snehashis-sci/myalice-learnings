@@ -1517,3 +1517,286 @@ $ minikube service monitoring-grafana --url
 http://127.0.0.1:63800
 ❗  Because you are using a Docker driver on windows, the terminal needs to be open to run it.
 ```
+
+9th feb, 2025
+
+I have completed the helm tutorial but i needed some extra practice to get along with the relevant command lines. So today i have started working on the kube prometheus stack again and pulled it from helm repo and installed and configured it. 
+
+```bash
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings (main)       
+$ helm repo list
+NAME                    URL
+prometheus-community    https://prometheus-community.github.io/helm-charts  
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings (main)       
+$ mkdir may-helm
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings (main)       
+$ cd may-helm
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm (main)
+$ helm pull prometheus-community/kube-prometheus-stack --untar=true
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm (main)
+$ ls
+kube-prometheus-stack/
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm (main)
+$ cd ..
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings (main)       
+$ cd .
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings (main)       
+$ cd ./
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings (main)       
+$ cd may-helm
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm (main)
+$ ls
+kube-prometheus-stack/
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm (main)
+$ cd kube-prometheus-stack/
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm/kube-prometheus-stack (main)
+$ vscode .
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm/kube-prometheus-stack (main)
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm/kube-prometheus-stack (main)
+$ vscode .
+bash: vscode: command not found
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm/kube-prometheus-stack (main)
+$ vscode .
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm/kube-prometheus-stack (main)
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm/kube-prometheus-stack (main)
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm/kube-prometheus-stack (main)
+$ vscode .
+bash: vscode: command not found
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm/kube-prometheus-stack (main)
+$ cd ..
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm (main)
+$ helm install monitoring ./kube-prometheus-stack/
+NAME: monitoring
+LAST DEPLOYED: Sun Feb  9 14:30:03 2025
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+NOTES:
+4 -d ; echo
+
+Access Grafana local instance:
+
+  export POD_NAME=$(kubectl --namespace default get pod -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=monitoring" -oname)
+  kubectl --namespace default port-forward $POD_NAME 3000
+
+Visit https://github.com/prometheus-operator/kube-prometheus for instructions on how to create & configure Alertmanager and Prometheus instances using the Operator.
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm (main)
+$ ls
+kube-prometheus-stack/
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm (main)
+$ cd kube-prometheus-stack/
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm/kube-prometheus-stack (main)
+$ helm upgrade monitoring --value=myvalues.yaml .
+Error: unknown flag: --value
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm/kube-prometheus-stack (main)
+$ helm upgrade monitoring --values=myvalues.yaml .
+Release "monitoring" has been upgraded. Happy Helming!
+NAME: monitoring
+LAST DEPLOYED: Sun Feb  9 15:11:23 2025
+NAMESPACE: default
+STATUS: deployed
+REVISION: 2
+NOTES:
+kube-prometheus-stack has been installed. Check its status by running:
+  kubectl --namespace default get pods -l "release=monitoring"
+
+Get Grafana 'admin' user password by running:
+
+  kubectl --namespace default get secrets prom-grafana -ojsonpath="{.data.admin-password}" | base64 -d ; echo
+
+Access Grafana local instance:
+
+  export POD_NAME=$(kubectl --namespace default get pod -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=monitoring" -oname)
+  kubectl --namespace default port-forward $POD_NAME 3000
+
+Visit https://github.com/prometheus-operator/kube-prometheus for instructions on how to create & configure Alertmanager and Prometheus instances using the Operator.
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm/kube-prometheus-stack (main)
+$ kubectl get svc
+NAME                                      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+alertmanager-operated                     ClusterIP   None             <none>        9093/TCP,9094/TCP,9094/UDP   41m
+kubernetes                                ClusterIP   10.96.0.1        <none>        443/TCP                      21d
+mongo-service                             ClusterIP   10.109.210.174   <none>        27017/TCP                    17d
+monitoring-grafana                        NodePort    10.103.141.134   <none>        80:30001/TCP                 42m
+monitoring-kube-prometheus-alertmanager   ClusterIP   10.100.95.138    <none>        9093/TCP,8080/TCP            42m
+monitoring-kube-prometheus-operator       ClusterIP   10.107.61.171    <none>        443/TCP                      42m
+monitoring-kube-prometheus-prometheus     ClusterIP   10.101.151.1     <none>        9090/TCP,8080/TCP            42m
+monitoring-kube-state-metrics             ClusterIP   10.107.165.110   <none>        8080/TCP                     42m
+monitoring-prometheus-node-exporter       ClusterIP   10.102.67.220    <none>        9100/TCP                     42m
+prometheus-operated                       ClusterIP   None             <none>        9090/TCP                     41m
+webapp-service                            NodePort    10.101.192.143   <none>        3000:30200/TCP               17d
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm/kube-prometheus-stack (main)
+$ kubectl get po
+NAME                                                     READY   STATUS    RESTARTS   AGE
+alertmanager-monitoring-kube-prometheus-alertmanager-0   2/2     Running   0          42m
+monitoring-grafana-565b44c7f-8bzvl                       3/3     Running   0          87s
+monitoring-kube-prometheus-operator-7859f9db49-5xnd6     1/1     Running   0          42m
+monitoring-kube-state-metrics-56d9ddb9c7-2jv8f           1/1     Running   0          42m
+monitoring-prometheus-node-exporter-qsdlj                1/1     Running   0          42m
+prometheus-monitoring-kube-prometheus-prometheus-0       2/2     Running   0          42m
+```
+
+Passed the the myvalues.yaml file as a values parameter externally.
+
+```yaml
+grafana:
+  adminPassword: admin
+  service:
+    type: NodePort
+    nodePort: 30001
+```
+
+In the following bash, i have created a k8s yaml file from a helm chart. 
+
+```bash
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm/kube-prometheus-stack (main)
+$ helm template monitoring . --values=myvalues.yaml > monitoring-stack.yaml
+
+Sndevice@Sndevice MINGW64 ~/Documents/GitHub/myalice-learnings/may-helm/kube-prometheus-stack (main)
+$ ls
+Chart.lock  Chart.yaml  charts/  monitoring-stack.yaml  myvalues.yaml  templates/  values.yaml
+```
+Now it becomes a standalone monitoring stack yaml file which can be deployed by kubectl apply command without the actual helm chart.
+
+I have tried the fleetman app from Richard Chesterwood and deployed it in a cluster.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+spec:
+  selector:
+    matchLabels:
+      app: webapp
+  replicas: 1
+  template: # template for the pods
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+      - name: webapp
+        # Note to deployer - add -dev at the end of here for development version
+        image: richardchesterwood/k8s-fleetman-helm-demo:v1.0.0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fleetman-webapp
+
+spec:
+  selector:
+    app: webapp
+
+  ports:
+    - name: http
+      port: 80
+      nodePort: 30080
+
+  type: NodePort
+```
+
+This works with a service tunnel and shows the content on the browser.
+
+```bash
+minikube service fleetman-webapp --url
+```
+
+we can make our yaml file dynamic by passing values using go lang syntax. In the following example, i have used go lang syntax `.Values.webapp.numofreplicas` in curly brackets to purse the value from values.yaml file in the same directory.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+spec:
+  selector:
+    matchLabels:
+      app: webapp
+  replicas: {{.Values.webapp.numofreplicas}}
+  template: # template for the pods
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+      - name: webapp
+        # Note to deployer - add -dev at the end of here for development version
+        image: richardchesterwood/k8s-fleetman-helm-demo:v1.0.0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fleetman-webapp
+
+spec:
+  selector:
+    app: webapp
+
+  ports:
+    - name: http
+      port: 80
+      nodePort: 30080
+
+  type: NodePort
+```
+
+where the values.yaml file looks like this.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+spec:
+  selector:
+    matchLabels:
+      app: webapp
+  replicas: {{.Values.webapp.numofreplicas}}
+  template: # template for the pods
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+      - name: webapp
+        # Note to deployer - add -dev at the end of here for development version
+        image: richardchesterwood/k8s-fleetman-helm-demo:v1.0.0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fleetman-webapp
+
+spec:
+  selector:
+    app: webapp
+
+  ports:
+    - name: http
+      port: 80
+      nodePort: 30080
+
+  type: NodePort
+```
+
+Using helm template, we can view the changes without deploying it.
