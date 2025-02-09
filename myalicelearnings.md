@@ -1763,40 +1763,8 @@ spec:
 where the values.yaml file looks like this.
 
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: webapp
-spec:
-  selector:
-    matchLabels:
-      app: webapp
-  replicas: {{.Values.webapp.numofreplicas}}
-  template: # template for the pods
-    metadata:
-      labels:
-        app: webapp
-    spec:
-      containers:
-      - name: webapp
-        # Note to deployer - add -dev at the end of here for development version
-        image: richardchesterwood/k8s-fleetman-helm-demo:v1.0.0
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: fleetman-webapp
-
-spec:
-  selector:
-    app: webapp
-
-  ports:
-    - name: http
-      port: 80
-      nodePort: 30080
-
-  type: NodePort
+webapp:
+  numofreplicas: 3
 ```
 
 Using helm template, we can view the changes without deploying it.
