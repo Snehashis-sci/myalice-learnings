@@ -1768,3 +1768,35 @@ webapp:
 ```
 
 Using helm template, we can view the changes without deploying it.
+
+
+#### Prometheus
+
+Metric Entries: help and type
+
+Help: The description about the specific metric.
+
+Type: there are 3 types of metrics
+1. Counter: How many times x happened?
+2. Gauge: What is the current value of x now?
+3. Histogram: How long or how big the x was?
+
+Here the value of x is for example cpu usage or number of requests etc.
+
+Exposing the prometheus-server Kubernetes Service:
+
+`kubectl expose service prometheus-server --type=NodePort --target-port=9090 --name=prometheus-server-ext`
+
+Now we have exposed the prometheus-server Kubernetes service. Let’s access the Prometheus application using the following command:
+
+`minikube service prometheus-server-ext`
+
+Check the additional scrape config for the kube prometheus stack and insert additional target to test.
+
+
+![image][def]
+
+[def]: files://C:/Users/Sndevice/Documents/GitHub/myalice-learnings/may-helm/kube-prometheus-stack/pvc.png
+
+
+![pvcenable](C:\Users\Sndevice\Documents\GitHub\myalice-learnings\may-helm\kube-prometheus-stack\pvc.png)
