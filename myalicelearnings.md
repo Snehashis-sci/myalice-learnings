@@ -1800,3 +1800,438 @@ Check the additional scrape config for the kube prometheus stack and insert addi
 
 
 ![pvcenable](C:\Users\Sndevice\Documents\GitHub\myalice-learnings\may-helm\kube-prometheus-stack\pvc.png)
+
+
+
+
+feb 24, 2025
+
+Today i have created a namespace named nginxspace and deployed an nginx with service under that namespace. 
+
+this is the deployment file.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+```
+
+and this is the service file.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  type: NodePort
+  selector:
+    app: nginx
+  ports:
+    - port: 80
+      targetPort: 80
+```
+following codes are the bash lines.
+
+```bash
+snehashis@sndevice:~/nginx$ kubectl apply -f Deployment.yaml 
+deployment.apps/nginx created
+snehashis@sndevice:~/nginx$ kubectl apply -f Service.yaml
+service/nginx-service created
+snehashis@sndevice:~/nginx$ minikube service nginx-service
+|-----------|---------------|-------------|---------------------------|
+| NAMESPACE |     NAME      | TARGET PORT |            URL            |
+|-----------|---------------|-------------|---------------------------|
+| default   | nginx-service |          80 | http://192.168.49.2:32726 |
+|-----------|---------------|-------------|---------------------------|
+
+❌  Exiting due to SVC_UNREACHABLE: service not available: no running pod for service nginx-service found
+
+╭───────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                           │
+│    😿  If the above advice does not help, please let us know:                             │
+│    👉  https://github.com/kubernetes/minikube/issues/new/choose                           │
+│                                                                                           │
+│    Please run `minikube logs --file=logs.txt` and attach logs.txt to the GitHub issue.    │
+│    Please also attach the following file to the GitHub issue:                             │
+│    - /tmp/minikube_service_b4fe9e6a1b6223beaf0f602992e1a84ac8b89ecc_0.log                 │
+│                                                                                           │
+╰───────────────────────────────────────────────────────────────────────────────────────────╯
+
+snehashis@sndevice:~/nginx$ kubectl get svc
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+kubernetes      ClusterIP   10.96.0.1       <none>        443/TCP        34m
+nginx-service   NodePort    10.97.210.141   <none>        80:32726/TCP   2m6s
+snehashis@sndevice:~/nginx$ kubectl get po
+NAME                   READY   STATUS    RESTARTS   AGE
+nginx-96b9d695-vgjjb   1/1     Running   0          2m46s
+snehashis@sndevice:~/nginx$ kubectl get po -A
+NAMESPACE              NAME                                         READY   STATUS    RESTARTS        AGE
+default                nginx-96b9d695-vgjjb                         1/1     Running   0               2m55s
+kube-system            coredns-668d6bf9bc-9bnxg                     1/1     Running   1 (10m ago)     35m
+kube-system            etcd-minikube                                1/1     Running   1 (10m ago)     35m
+kube-system            kube-apiserver-minikube                      1/1     Running   1 (10m ago)     35m
+kube-system            kube-controller-manager-minikube             1/1     Running   1 (10m ago)     35m
+kube-system            kube-proxy-28z8w                             1/1     Running   1 (10m ago)     35m
+kube-system            kube-scheduler-minikube                      1/1     Running   1 (10m ago)     35m
+kube-system            storage-provisioner                          1/1     Running   3 (3m50s ago)   35m
+kubernetes-dashboard   dashboard-metrics-scraper-5d59dccf9b-d9xns   1/1     Running   1 (10m ago)     28m
+kubernetes-dashboard   kubernetes-dashboard-7779f9b69b-dhnwr        1/1     Running   2 (3m50s ago)   28m
+snehashis@sndevice:~/nginx$ kubectl get sts
+No resources found in default namespace.
+snehashis@sndevice:~/nginx$ kubectl get ds
+No resources found in default namespace.
+snehashis@sndevice:~/nginx$ kubectl get deploy
+NAME    READY   UP-TO-DATE   AVAILABLE   AGE
+nginx   1/1     1            1           4m5s
+snehashis@sndevice:~/nginx$ kubectl delete deploy nginx
+deployment.apps "nginx" deleted
+snehashis@sndevice:~/nginx$ kubectl get deploy
+No resources found in default namespace.
+snehashis@sndevice:~/nginx$ kubectl get ds
+No resources found in default namespace.
+snehashis@sndevice:~/nginx$ kubectl get po -A
+NAMESPACE              NAME                                         READY   STATUS    RESTARTS        AGE
+kube-system            coredns-668d6bf9bc-9bnxg                     1/1     Running   1 (12m ago)     37m
+kube-system            etcd-minikube                                1/1     Running   1 (12m ago)     37m
+kube-system            kube-apiserver-minikube                      1/1     Running   1 (12m ago)     37m
+kube-system            kube-controller-manager-minikube             1/1     Running   1 (12m ago)     37m
+kube-system            kube-proxy-28z8w                             1/1     Running   1 (12m ago)     37m
+kube-system            kube-scheduler-minikube                      1/1     Running   1 (12m ago)     37m
+kube-system            storage-provisioner                          1/1     Running   3 (5m47s ago)   37m
+kubernetes-dashboard   dashboard-metrics-scraper-5d59dccf9b-d9xns   1/1     Running   1 (12m ago)     30m
+kubernetes-dashboard   kubernetes-dashboard-7779f9b69b-dhnwr        1/1     Running   2 (5m47s ago)   30m
+snehashis@sndevice:~/nginx$ kubectl apply -f Deployment.yaml -n nginxspace
+deployment.apps/nginx created
+snehashis@sndevice:~/nginx$ kubectl get svc -A
+NAMESPACE              NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                  AGE
+default                kubernetes                  ClusterIP   10.96.0.1       <none>        443/TCP                  38m
+default                nginx-service               NodePort    10.97.210.141   <none>        80:32726/TCP             5m33s
+kube-system            kube-dns                    ClusterIP   10.96.0.10      <none>        53/UDP,53/TCP,9153/TCP   38m
+kubernetes-dashboard   dashboard-metrics-scraper   ClusterIP   10.101.97.50    <none>        8000/TCP                 31m
+kubernetes-dashboard   kubernetes-dashboard        ClusterIP   10.111.48.237   <none>        80/TCP                   31m
+snehashis@sndevice:~/nginx$ kubectl delete svc nginx-service
+service "nginx-service" deleted
+snehashis@sndevice:~/nginx$ kubectl apply -f Service.yaml -n nginxspace
+service/nginx-service created
+snehashis@sndevice:~/nginx$ kubectl get svc -A
+NAMESPACE              NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                  AGE
+default                kubernetes                  ClusterIP   10.96.0.1       <none>        443/TCP                  38m
+kube-system            kube-dns                    ClusterIP   10.96.0.10      <none>        53/UDP,53/TCP,9153/TCP   38m
+kubernetes-dashboard   dashboard-metrics-scraper   ClusterIP   10.101.97.50    <none>        8000/TCP                 32m
+kubernetes-dashboard   kubernetes-dashboard        ClusterIP   10.111.48.237   <none>        80/TCP                   32m
+nginxspace             nginx-service               NodePort    10.97.34.185    <none>        80:31619/TCP             5s
+snehashis@sndevice:~/nginx$ kubectl get po -A
+NAMESPACE              NAME                                         READY   STATUS    RESTARTS        AGE
+kube-system            coredns-668d6bf9bc-9bnxg                     1/1     Running   1 (14m ago)     38m
+kube-system            etcd-minikube                                1/1     Running   1 (14m ago)     38m
+kube-system            kube-apiserver-minikube                      1/1     Running   1 (14m ago)     38m
+kube-system            kube-controller-manager-minikube             1/1     Running   1 (14m ago)     38m
+kube-system            kube-proxy-28z8w                             1/1     Running   1 (14m ago)     38m
+kube-system            kube-scheduler-minikube                      1/1     Running   1 (14m ago)     38m
+kube-system            storage-provisioner                          1/1     Running   3 (7m30s ago)   38m
+kubernetes-dashboard   dashboard-metrics-scraper-5d59dccf9b-d9xns   1/1     Running   1 (14m ago)     32m
+kubernetes-dashboard   kubernetes-dashboard-7779f9b69b-dhnwr        1/1     Running   2 (7m30s ago)   32m
+nginxspace             nginx-96b9d695-5zfl9                         1/1     Running   0               75s
+snehashis@sndevice:~/nginx$ kubectl get deploy -A
+NAMESPACE              NAME                        READY   UP-TO-DATE   AVAILABLE   AGE
+kube-system            coredns                     1/1     1            1           39m
+kubernetes-dashboard   dashboard-metrics-scraper   1/1     1            1           32m
+kubernetes-dashboard   kubernetes-dashboard        1/1     1            1           32m
+nginxspace             nginx                       1/1     1            1           86s
+snehashis@sndevice:~/nginx$ minikube service nginx-service
+
+❌  Exiting due to SVC_NOT_FOUND: Service 'nginx-service' was not found in 'default' namespace.
+You may select another namespace by using 'minikube service nginx-service -n <namespace>'. Or list out all the services using 'minikube service list'
+
+snehashis@sndevice:~/nginx$ minikube service nginx-service -n nginxspace
+|------------|---------------|-------------|---------------------------|
+| NAMESPACE  |     NAME      | TARGET PORT |            URL            |
+|------------|---------------|-------------|---------------------------|
+| nginxspace | nginx-service |          80 | http://192.168.49.2:31619 |
+|------------|---------------|-------------|---------------------------|
+🎉  Opening service nginxspace/nginx-service in default browser...
+```
+
+After that i have created another deployment and created a seperate namespace yaml file and and pushed it to git repo.
+
+Following codes are for deployment file
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: nginxspace
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+```
+
+following codes are for namespace file.
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginxspace2
+```
+then we applied these in bash.
+
+```bash
+snehashis@sndevice:~/nginx2$ kubectl create -f ./Namespace.yaml 
+error: no objects passed to create
+snehashis@sndevice:~/nginx2$ kubectl create -f Namespace.yaml 
+error: no objects passed to create
+snehashis@sndevice:~/nginx2$ ls
+Deployment.yaml  Namespace.yaml
+snehashis@sndevice:~/nginx2$ kubectl create -f ./Namespace.yaml 
+error: no objects passed to create
+snehashis@sndevice:~/nginx2$ ls
+Deployment.yaml  Namespace.yaml
+snehashis@sndevice:~/nginx2$ kubectl create -f ./Namespace.yaml 
+namespace/nginxspace2 created
+snehashis@sndevice:~/nginx2$ git config --global user.email "rupam.sdnath@gmail.com"
+snehashis@sndevice:~/nginx2$ git config --global user.name "Snehashis-sci"
+snehashis@sndevice:~/nginx2$ git status
+On branch main
+
+No commits yet
+
+Changes to be committed:
+  (use "git rm --cached <file>..." to unstage)
+        new file:   Deployment.yaml
+        new file:   Namespace.yaml
+
+snehashis@sndevice:~/nginx2$ git commit
+[main (root-commit) bc489b2] created an nginx deployment and namespace yaml file for nginx2
+ 2 files changed, 25 insertions(+)
+ create mode 100644 Deployment.yaml
+ create mode 100644 Namespace.yaml
+snehashis@sndevice:~/nginx2$ git status
+On branch main
+nothing to commit, working tree clean
+snehashis@sndevice:~/nginx2$ git push
+fatal: No configured push destination.
+Either specify the URL from the command-line or configure a remote repository using
+
+    git remote add <name> <url>
+
+and then push using the remote name
+
+    git push <name>
+
+snehashis@sndevice:~/nginx2$ git remote add origin https://github.com/Snehashis-sci/nginx2.git
+snehashis@sndevice:~/nginx2$ git branch -M main
+snehashis@sndevice:~/nginx2$ git push -u origin main
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 517 bytes | 172.00 KiB/s, done.
+Total 4 (delta 0), reused 0 (delta 0), pack-reused 0
+To https://github.com/Snehashis-sci/nginx2.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+snehashis@sndevice:~/nginx2$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+snehashis@sndevice:~/nginx2$ kubectl get ns -A
+NAME                   STATUS   AGE
+default                Active   157m
+flux-system            Active   2m15s
+kube-node-lease        Active   157m
+kube-public            Active   157m
+kube-system            Active   157m
+kubernetes-dashboard   Active   151m
+nginxspace             Active   145m
+nginxspace2            Active   101m
+snehashis@sndevice:~/nginx2$ git push
+To https://github.com/Snehashis-sci/nginx2.git
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/Snehashis-sci/nginx2.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+snehashis@sndevice:~/nginx2$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   Deployment.yaml
+
+no changes added to commit (use "git add" and/or "git commit -a")
+snehashis@sndevice:~/nginx2$ git add .
+snehashis@sndevice:~/nginx2$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        modified:   Deployment.yaml
+
+snehashis@sndevice:~/nginx2$ git commit
+[main 44ea032] added namespace
+ 1 file changed, 1 insertion(+)
+snehashis@sndevice:~/nginx2$ git push
+To https://github.com/Snehashis-sci/nginx2.git
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/Snehashis-sci/nginx2.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+snehashis@sndevice:~/nginx2$ git push origin main
+To https://github.com/Snehashis-sci/nginx2.git
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/Snehashis-sci/nginx2.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+snehashis@sndevice:~/nginx2$ git pull origin main --rebase
+remote: Enumerating objects: 10, done.
+remote: Counting objects: 100% (10/10), done.
+remote: Compressing objects: 100% (8/8), done.
+remote: Total 9 (delta 1), reused 8 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (9/9), 58.78 KiB | 445.00 KiB/s, done.
+From https://github.com/Snehashis-sci/nginx2
+ * branch            main       -> FETCH_HEAD
+   bc489b2..dde59d2  main       -> origin/main
+Successfully rebased and updated refs/heads/main.
+snehashis@sndevice:~/nginx2$ git push origin main
+Enumerating objects: 5, done.
+Counting objects: 100% (5/5), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 384 bytes | 384.00 KiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/Snehashis-sci/nginx2.git
+   dde59d2..17f2347  main -> main
+snehashis@sndevice:~/nginx2$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   flux-system/gotk-sync.yaml
+
+no changes added to commit (use "git add" and/or "git commit -a")
+snehashis@sndevice:~/nginx2$ git add .
+snehashis@sndevice:~/nginx2$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        modified:   flux-system/gotk-sync.yaml
+
+snehashis@sndevice:~/nginx2$ git commit
+[main db23de0] changed the kustomization spec interval from 10mins to 2mins
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+snehashis@sndevice:~/nginx2$ git push
+Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 449 bytes | 449.00 KiB/s, done.
+Total 4 (delta 2), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+To https://github.com/Snehashis-sci/nginx2.git
+   17f2347..db23de0  main -> main
+snehashis@sndevice:~/nginx2$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   Deployment.yaml
+
+no changes added to commit (use "git add" and/or "git commit -a")
+snehashis@sndevice:~/nginx2$ git add .
+snehashis@sndevice:~/nginx2$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        modified:   Deployment.yaml
+
+snehashis@sndevice:~/nginx2$ git commit
+Aborting commit due to empty commit message.
+snehashis@sndevice:~/nginx2$ git commit
+[main a582cbc] commented out the deployment
+ 1 file changed, 22 insertions(+), 22 deletions(-)
+snehashis@sndevice:~/nginx2$ git push
+Enumerating objects: 5, done.
+Counting objects: 100% (5/5), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 512 bytes | 512.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+To https://github.com/Snehashis-sci/nginx2.git
+   db23de0..a582cbc  main -> main
+snehashis@sndevice:~/nginx2$ git add .
+snehashis@sndevice:~/nginx2$ git commit -m "hudai"
+[main 0c9337e] hudai
+ 1 file changed, 22 insertions(+), 22 deletions(-)
+snehashis@sndevice:~/nginx2$ git push origin main
+Enumerating objects: 5, done.
+Counting objects: 100% (5/5), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 490 bytes | 245.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+To https://github.com/Snehashis-sci/nginx2.git
+   a582cbc..0c9337e  main -> main
+snehashis@sndevice:~/nginx2$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+```
+
+Then i have install flux cli and then installed flux using Flux bootstrap for GitHub reference. Connected my git repo to flux.
