@@ -2235,3 +2235,123 @@ nothing to commit, working tree clean
 ```
 
 Then i have install flux cli and then installed flux using Flux bootstrap for GitHub reference. Connected my git repo to flux.
+
+
+the following bash lines were for yq configuration where the yq tool wasnot showing the yaml file in processed template. So i had to tweak it a little bit to get working.
+
+```bash
+snehashis@sndevice:~$ kubectl -n nginxspace get deploy nginx -oyaml | yq -y .metadata
+annotations:
+  deployment.kubernetes.io/revision: '1'
+creationTimestamp: '2025-02-24T08:35:28Z'
+generation: 2
+labels:
+  app: nginx
+  kustomize.toolkit.fluxcd.io/name: flux-system
+  kustomize.toolkit.fluxcd.io/namespace: flux-system
+name: nginx
+namespace: nginxspace
+resourceVersion: '12427'
+uid: 6de95b63-20e5-4ced-b3da-304292f85bc0
+snehashis@sndevice:~$ yq --version
+yq 0.0.0
+snehashis@sndevice:~$ sudo apt info yq
+Package: yq
+Version: 3.1.0-3
+Priority: optional
+Section: universe/utils
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian Python Team <team+python@tracker.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 70.7 kB
+Depends: jq, python3-argcomplete, python3-toml, python3-xmltodict, python3-yaml, python3:any
+Homepage: https://github.com/kislyuk/yq
+Download-Size: 16.9 kB
+APT-Manual-Installed: yes
+APT-Sources: https://mirror.limda.net/ubuntu-archive noble/universe amd64 Packages
+Description: Command-line YAML processor - jq wrapper for YAML documents
+ yq transcodes YAML documents to JSON and passes them to jq. The
+ package also includes xq, which transcodes XML to JSON using
+ xmltodict and pipes it to jq, and tomlq, which uses the toml library
+ to transcode TOML to JSON, then pipes it to jq
+
+snehashis@sndevice:~$ sudo snap info yq
+name:      yq
+summary:   A lightweight and portable command-line YAML processor
+publisher: Mike Farah (mikefarah)
+store-url: https://snapcraft.io/yq
+contact:   https://github.com/mikefarah/yq/issues
+license:   unset
+description: |
+  The aim of the project is to be the jq or sed of yaml files.
+commands:
+  - yq
+snap-id:      b1xa1ED1Aw4HN9BnJVP3Je95pyEVN6gu
+tracking:     latest/stable
+refresh-date: today at 17:24 +06
+channels:
+  latest/stable:    v4.44.5 2024-12-07 (2634) 7MB -
+  latest/candidate: ↑                             
+  latest/beta:      ↑                             
+  latest/edge:      v4.45.1 2025-02-22 (2661) 7MB -
+  v4/stable:        v4.44.5 2024-12-07 (2634) 7MB -
+  v4/candidate:     ↑                             
+  v4/beta:          ↑                             
+  v4/edge:          ↑                             
+  v3/stable:        3.4.1   2021-01-05  (884) 2MB -
+  v3/candidate:     ↑                             
+  v3/beta:          ↑                             
+  v3/edge:          3.4.1   2021-01-05  (884) 2MB -
+installed:          v4.44.5            (2634) 7MB -
+snehashis@sndevice:~$ whereis yq
+yq: /usr/bin/yq /snap/bin/yq
+snehashis@sndevice:~$ sudo apt-get remove yq
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following packages were automatically installed and are no longer required:
+  python3-argcomplete python3-toml python3-xmltodict
+Use 'sudo apt autoremove' to remove them.
+The following packages will be REMOVED:
+  yq
+0 upgraded, 0 newly installed, 1 to remove and 1 not upgraded.
+After this operation, 70.7 kB disk space will be freed.
+Do you want to continue? [Y/n] y
+(Reading database ... 185110 files and directories currently installed.)
+Removing yq (3.1.0-3) ...
+snehashis@sndevice:~$ yq --version
+bash: /usr/bin/yq: No such file or directory
+snehashis@sndevice:~$ whereis yq
+yq: /snap/bin/yq
+snehashis@sndevice:~$ yq --version
+bash: /usr/bin/yq: No such file or directory
+snehashis@sndevice:~$ ls -lthr /snap/bin/yq
+lrwxrwxrwx 1 root root 13 Feb 24 17:24 /snap/bin/yq -> /usr/bin/snap
+snehashis@sndevice:~$ ls -lthr /usr/bin/snap
+-rwxr-xr-x 1 root root 18M Oct 11 14:05 /usr/bin/snap
+snehashis@sndevice:~$ sudo ln -sf /usr/bin/snap /usr/bin/yq
+snehashis@sndevice:~$ yq --version
+yq (https://github.com/mikefarah/yq/) version v4.44.5
+snehashis@sndevice:~$ kubectl -n nginxspace get deploy nginx -oyaml | yq  .metadata
+annotations:
+  deployment.kubernetes.io/revision: "1"
+creationTimestamp: "2025-02-24T08:35:28Z"
+generation: 2
+labels:
+  app: nginx
+  kustomize.toolkit.fluxcd.io/name: flux-system
+  kustomize.toolkit.fluxcd.io/namespace: flux-system
+name: nginx
+namespace: nginxspace
+resourceVersion: "12427"
+uid: 6de95b63-20e5-4ced-b3da-304292f85bc0
+snehashis@sndevice:~$ whereis yq
+yq: /usr/bin/yq /snap/bin/yq
+snehashis@sndevice:~$ ls -lthr /usr/bin/yq
+lrwxrwxrwx 1 root root 13 Feb 24 17:57 /usr/bin/yq -> /usr/bin/snap
+snehashis@sndevice:~$ ls -lthr /snap/bin/yq
+lrwxrwxrwx 1 root root 13 Feb 24 17:24 /snap/bin/yq -> /usr/bin/snap
+```
+
+So today i have learned that flux doesnt hamper any existing pod or deployment under a namespace. And flux uses automation to keep the cluster up and running even if we comment out a deployment. Later i have to check the git deployment and change it's namespace to check if it changes anything. 
