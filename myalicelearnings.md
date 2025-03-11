@@ -2355,3 +2355,248 @@ lrwxrwxrwx 1 root root 13 Feb 24 17:24 /snap/bin/yq -> /usr/bin/snap
 ```
 
 So today i have learned that flux doesnt hamper any existing pod or deployment under a namespace. And flux uses automation to keep the cluster up and running even if we comment out a deployment. Later i have to check the git deployment and change it's namespace to check if it changes anything. 
+
+
+
+March 03, 2025
+
+#### Pulumi and Kubernetes
+
+pulumi Iac (Infrastruce as code)
+
+Its simply an approach to automate provisioning and management of infrastructure. its important for the ongoing transition to cloud environments. Since frequent infrastructure changes are happening, hundred of team members can use the cloud environment to take the advantages of the possible made changes swiftly. Thounsands of changes of resources can be painful to keep track. So, automation of such system can benefit the team members to take control of such complexity. 
+Using Pulumi to deploy and manage Kubernetes applications and learn best practices for creating maintainable and scalable infrastructure code. By using Pulumi, organizations can streamline their infrastructure management, improve collaboration between development and operations teams, and accelerate their cloud-native journey.
+
+
+#### fluxcd
+
+Monorepo: Stores all k8s files in a single git repo. Stores all environment specific configs in the same branch.
+
+Repo structure:
+
+├── apps
+│   ├── base
+│   ├── production 
+│   └── staging
+├── infrastructure
+│   ├── base
+│   ├── production 
+│   └── staging
+└── clusters
+    ├── production
+    └── staging
+
+
+Repo per env: It is similar to monorepo but there are some notalble differences. 
+1. In monorepo, all the team members can read the production config since git is not designed to restrict access. It can be done by tools like github or gitlab. Through these tools, we can provide permission maangement on top of git. having a seperate repo for production means we can grant acccess to a subset of team members while everyone can clone staging and open pull requests. 
+2. Promoting changes from one env to another can be time consuming for example infrastructure changes which can't be automated with flux image updates.
+3. Using the same repo for all env, inintentional changes to production can be harder to spot. having a dedicated production repo can limit the scope of changes and makes the review process less error prone.
+
+Repo per team: the org has a dedicated admin team that provides k8s as a service to other teams. 
+
+Admin team is responsible for 
+* setting up the staging and prod env.
+* maintain the cluster addon and othe cluster wide resources like CRDs, controllers, admission webhooks.
+* onboards the dev teams repo using flux's gitrepo custom resources.
+* configures how the dev teams repo are reconciled on each cluster using flux's kustomization custom resources.
+
+The dev teams are responsible for
+* setting uo the apps definitions such as k8s deployments, helm release.
+* configures how the apps are reconciled on each env(kustomize overlays, helm values)
+* manages the apps promotion between envs using flux's automated image updates to git.
+
+A good example can be found here: https://github.com/fluxcd/flux2-multi-tenancy
+
+Repo per app: In this way, the same repo store both the app source code and its deployment manifests. The deployment manifests from an app repo can serve as the base config for both the monorepo and the repo per team approaches.
+Instead of duplicating the deployment manifests between the app repo and the cluster config repo, the config repo can hold a pointer to the app manifests.
+
+Inside the config repo, we can define a gitrepo that tells flux to clone the app repo inside the cluster, then with a kustomization, we can tell flux which directory holds the app manifests and how to patch them based on the target env.
+
+Another option is to bundle the app manifests into a helm chart and publish it to helm repo. In the config repo, we can define the helm repo and create an app helmrelease for each target env.
+
+
+
+```bashrc
+snehashis@sndevice:~$ sops -version
+sops 3.9.4 (latest)
+snehashis@sndevice:~$ wget -0 age.tar.gz https://github.com/FiloSottile/age/releases/download/v1.2.1/age-v1.2.1-linux-amd64.tar.gz
+wget: invalid option -- '0'
+Usage: wget [OPTION]... [URL]...
+
+Try `wget --help' for more options.
+snehashis@sndevice:~$ wget -O age.tar.gz https://github.com/FiloSottile/age/releases/download/v1.2.1/age-v1.2.1-linux-amd64.tar.gz
+--2025-03-05 14:17:23--  https://github.com/FiloSottile/age/releases/download/v1.2.1/age-v1.2.1-linux-amd64.tar.gz
+Resolving github.com (github.com)... 20.205.243.166
+Connecting to github.com (github.com)|20.205.243.166|:443... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: https://objects.githubusercontent.com/github-production-release-asset-2e65be/187403699/fbe9109d-73fc-472f-be1e-096da3f42be7?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=releaseassetproduction%2F20250305%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250305T081723Z&X-Amz-Expires=300&X-Amz-Signature=70ed687ac30b3302d40a7eeca6e9a480cc4c071f2efa1f3b8d80417da8133aec&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3Dage-v1.2.1-linux-amd64.tar.gz&response-content-type=application%2Foctet-stream [following]
+--2025-03-05 14:17:23--  https://objects.githubusercontent.com/github-production-release-asset-2e65be/187403699/fbe9109d-73fc-472f-be1e-096da3f42be7?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=releaseassetproduction%2F20250305%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250305T081723Z&X-Amz-Expires=300&X-Amz-Signature=70ed687ac30b3302d40a7eeca6e9a480cc4c071f2efa1f3b8d80417da8133aec&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3Dage-v1.2.1-linux-amd64.tar.gz&response-content-type=application%2Foctet-stream
+Resolving objects.githubusercontent.com (objects.githubusercontent.com)... 185.199.110.133, 185.199.111.133, 185.199.109.133, ...
+Connecting to objects.githubusercontent.com (objects.githubusercontent.com)|185.199.110.133|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 5194720 (5.0M) [application/octet-stream]
+Saving to: ‘age.tar.gz’
+
+age.tar.gz                                      100%[=====================================================================================================>]   4.95M  2.46MB/s    in 2.0s    
+
+2025-03-05 14:17:27 (2.46 MB/s) - ‘age.tar.gz’ saved [5194720/5194720]
+
+snehashis@sndevice:~$ ls
+age.tar.gz  Desktop  Documents  Downloads  Music  myalice  nginx  nginx2  Pictures  prometheus  Public  pulumidemo  snap  Templates  Videos
+snehashis@sndevice:~$ tar xf age.tar.gz 
+snehashis@sndevice:~$ ls
+age  age.tar.gz  Desktop  Documents  Downloads  Music  myalice  nginx  nginx2  Pictures  prometheus  Public  pulumidemo  snap  Templates  Videos
+snehashis@sndevice:~$ cd age
+snehashis@sndevice:~/age$ ls
+age  age-keygen  LICENSE
+snehashis@sndevice:~/age$ cd ..
+snehashis@sndevice:~$ sudo mv age/age /usr/local/bin
+[sudo] password for snehashis: 
+snehashis@sndevice:~$ sudo mv age/age-keygen /usr/local/bin
+snehashis@sndevice:~$ ls
+age  age.tar.gz  Desktop  Documents  Downloads  Music  myalice  nginx  nginx2  Pictures  prometheus  Public  pulumidemo  snap  Templates  Videos
+snehashis@sndevice:~$ cd age
+snehashis@sndevice:~/age$ cd ..
+snehashis@sndevice:~$ rm -rf age
+snehashis@sndevice:~$ rm age.tar.gz 
+snehashis@sndevice:~$ age -version
+v1.2.1
+snehashis@sndevice:~$ age-keygen -version
+v1.2.1
+snehashis@sndevice:~$ ls
+Desktop  Documents  Downloads  Music  myalice  nginx  nginx2  Pictures  prometheus  Public  pulumidemo  snap  Templates  Videos
+snehashis@sndevice:~$ cd Documents/
+snehashis@sndevice:~/Documents$ ls
+task.txt
+snehashis@sndevice:~/Documents$ age-keygen -o key.txt
+Public key: age10fq6202yhpg3nh0ce32dhz8w64g2xa8lkwux0uzuafnz3ywguuvqqyf68r
+snehashis@sndevice:~/Documents$ cat key.txt
+# created: 2025-03-05T14:24:12+06:00
+# public key: age10fq6202yhpg3nh0ce32dhz8w64g2xa8lkwux0uzuafnz3ywguuvqqyf68r
+AGE-SECRET-KEY-18DSZNQSEVHZZJJLAFTXU3NDH54CJWRG8R6CEFVT00HHFUZWTW9SQ2MC3NX
+snehashis@sndevice:~/Documents$ cd ~
+snehashis@sndevice:~$ whereami
+Command 'whereami' not found, but can be installed with:
+sudo apt install whereami
+snehashis@sndevice:~$ whoami
+snehashis
+snehashis@sndevice:~$ cd Documents/
+snehashis@sndevice:~/Documents$ mkdir ~/.sops
+snehashis@sndevice:~/Documents$ mv ./key.txt ~/.sops
+snehashis@sndevice:~/Documents$ cd ~
+snehashis@sndevice:~$ ls
+Desktop  Documents  Downloads  Music  myalice  nginx  nginx2  Pictures  prometheus  Public  pulumidemo  snap  Templates  Videos
+snehashis@sndevice:~$ cd ~/.sops
+snehashis@sndevice:~/.sops$ ls
+key.txt
+snehashis@sndevice:~/.sops$ cd ~/
+snehashis@sndevice:~$ ls
+Desktop  Documents  Downloads  Music  myalice  nginx  nginx2  Pictures  prometheus  Public  pulumidemo  snap  Templates  Videos
+snehashis@sndevice:~$ pwd
+/home/snehashis
+snehashis@sndevice:~$ cd ~/.sops
+snehashis@sndevice:~/.sops$ pwd
+/home/snehashis/.sops
+snehashis@sndevice:~/.sops$ cd ..
+snehashis@sndevice:~$ pwd
+/home/snehashis
+snehashis@sndevice:~$ ls
+Desktop  Documents  Downloads  Music  myalice  nginx  nginx2  Pictures  prometheus  Public  pulumidemo  snap  Templates  Videos
+snehashis@sndevice:~$ ls ~
+Desktop  Documents  Downloads  Music  myalice  nginx  nginx2  Pictures  prometheus  Public  pulumidemo  snap  Templates  Videos
+snehashis@sndevice:~$ cat ~/.sops/key.txt 
+# created: 2025-03-05T14:24:12+06:00
+# public key: age10fq6202yhpg3nh0ce32dhz8w64g2xa8lkwux0uzuafnz3ywguuvqqyf68r
+AGE-SECRET-KEY-18DSZNQSEVHZZJJLAFTXU3NDH54CJWRG8R6CEFVT00HHFUZWTW9SQ2MC3NX
+```
+
+```bash
+snehashis@sndevice:~$ cd Documents/
+snehashis@sndevice:~/Documents$ ls
+task.txt
+snehashis@sndevice:~/Documents$ cd ..
+snehashis@sndevice:~$ nano ~/.bashrc
+snehashis@sndevice:~$ source ~/.bashrc
+snehashis@sndevice:~$ cd Documents/
+snehashis@sndevice:~/Documents$ nano secret.yaml
+snehashis@sndevice:~/Documents$ cat secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+    name: mysql-secret
+    namespace: default
+stringData:
+    MYSQL_USER: root
+    MYSQL_PASSWORD: ghorerkhobor
+snehashis@sndevice:~/Documents$ nano secret.yaml
+snehashis@sndevice:~/Documents$ cat secret.yaml
+---
+apiVersion: v1
+kind: Secret
+metadata:
+    name: mysql-secret
+    namespace: default
+stringData:
+    MYSQL_USER: stonehouse
+    MYSQL_PASSWORD: ghorerkhobor
+snehashis@sndevice:~/Documents$ sops --encrypt --age $(cat $SOPS_AGE_KEY_FILE |grep -oP "public key: \K(.*)") --encrypted-regex '^(data|stringData)$' --in-place ./secret.yaml
+snehashis@sndevice:~/Documents$ cat secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+    name: mysql-secret
+    namespace: default
+stringData:
+    MYSQL_USER: ENC[AES256_GCM,data:ygI+QaQ9lkpXzA==,iv:mnkyIeFeMfP1bYARJRfzrIOBqoITIegHOBmdzcj4Elk=,tag:WEzxoU0xf48nuYm4qF+cEQ==,type:str]
+    MYSQL_PASSWORD: ENC[AES256_GCM,data:PgmJLFU4S5MplE2N,iv:MNm7pqgSV+9tiPlZgmrKZnfUb04tRxKuUIx8uekKefs=,tag:EtEJFIqMS3tXGKiGQSsQ0Q==,type:str]
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    age:
+        - recipient: age10fq6202yhpg3nh0ce32dhz8w64g2xa8lkwux0uzuafnz3ywguuvqqyf68r
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA0VEJJbjhGZkFXOVhpWXpm
+            VldRWE1XYmQydThzTGorOTNYU0d4bDVSTzJ3CmRpbE5ld0xTSENSRHR0UUdrcnZw
+            SEtGZXpDeWNlS25WWUJ5TkxrbnZPMDgKLS0tIHdwai91NHNzQWJFSmpKT0d0aEli
+            dzIxTVlLc1ZxMXJRV3JIajZtdmJBRFkKHsRbvaHghnh1Owrp/lYSVu9huhTT/7EO
+            lYgZEDbHhQW79T7eGmKVVzgK47+4zhBYJ2PMijunoNKDlw03b+Ky7g==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-03-05T08:52:07Z"
+    mac: ENC[AES256_GCM,data:bCHl//Lg6toySFl2VSOKr87FubzijPeBiVSNFFIdOXI/T17Hh+hjRqfuQM59j8CaefothhozriNM0VQXgM1UM/HqYMLNxvhNt/j9xSvS1WHX1IMEidR44JVTuckbLtnqyg5XLBnY2Cz53JAAUknUXBElpupZPq+eW/atR+DoDmQ=,iv:9b5TpI6tzD4LebrvvgPVmtfXpQU+W0jMn9MdC3Zjek8=,tag:sRJJ8zMJwBZXxHJnOhkHdw==,type:str]
+    pgp: []
+    encrypted_regex: ^(data|stringData)$
+    version: 3.9.4
+snehashis@sndevice:~/Documents$ sops --decrypt --age $(cat $SOPS_AGE_KEY_FILE |grep -oP "public key: \K(.*)") --encrypted-regex '^(data|stringData)$' --in-place ./secret.yaml
+snehashis@sndevice:~/Documents$ sops --encrypt --age $(cat $SOPS_AGE_KEY_FILE |grep -oP "public key: \K(.*)") --encrypted-regex '^(data|stringData)$' --in-place ./secret.yaml
+```
+
+#### Promql
+
+Metric types
+
+Querying in prometheus
+
+Filtering and label selection
+
+Time series Data
+
+Prometheus functions
+
+Aggregation Operators
+
+Aggregation over time
+
+Histogram queries
+
+Averages and Totals
+
+Label Manipulation
+
+Resource metrics
+
+Data Trends and deriv
+
+Advanced functions
